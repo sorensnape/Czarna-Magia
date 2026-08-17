@@ -209,7 +209,7 @@
     <!-- START -->
     <div id="screen-start" class="screen active">
         <h1>Lochy Czarnej Magii</h1>
-        <h2>Escape Room: Sekretne Zaklęcia i Artefakty</h2>
+        <h2>Sekretne Zaklęcia i Artefakty</h2>
 
         <p><em>Zeszliście do najgłębszych piwnic. Drzwi do gabinetu zamknęły się ze zgrzytem, a w powietrzu czuć zapach palonego pergaminu i starej magii. Na stole leży zwinięty zwoik ze wskazówkami...</em></p>
 
@@ -419,7 +419,7 @@
 
         const isHorkruks = ans1.includes('horkruks') || ans1.includes('horcrux');
 
-        if (isHorkruks && ans2 === 'szatański ogień') {
+        if (isHorkruks && ans2 === 'szatańska pożoga') {
             fb.className = 'feedback success';
             fb.innerText = 'Artefakt został zneutralizowany! Trzecia pieczęć opada!';
             setTimeout(() => nextScreen('screen-4', 90), 1000);
