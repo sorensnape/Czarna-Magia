@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Escape Room: Arcana Czarnej Magii</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Special+Elite&display=swap');
+
+        :root {
+            --bg-color: #050807;
+            --panel-bg: #0d1412;
+            --border-color: #1a2e26;
+            --silver-accent: #8b9d96;
+            --green-glow: #1a472a;
+            --text-dark: #c8d6d0;
+            --blood-red: #8b0000;
+            --font-title: 'Cinzel', serif;
+            --font-text: 'Special Elite', cursive, sans-serif;
+        }
+
+        body {
+            font-family: var(--font-text);
+            background-color: var(--bg-color);
+            color: var(--text-dark);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .container {
+            background-color: var(--panel-bg);
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400"><defs><filter id="f"><feTurbulence type="fractalNoise" baseFrequency="0.7" numOctaves="3" stitchTiles="stitch"/><feColorMatrix type="matrix" values="0 0 0 0 0.05 0 0 0 0 0.1 0 0 0 0 0.08 0 0 0 0.4 0"/></filter></defs><rect width="400" height="400" filter="url(%23f)" opacity="0.5"/></svg>');
+            border: 4px solid var(--border-color);
+            box-shadow: 0 0 30px rgba(26, 71, 42, 0.3);
+            border-radius: 6px;
+            padding: 35px;
+            max-width: 720px;
+            width: 100%;
+            position: relative;
+        }
+
+        .container::before, .container::after, .corner-bl, .corner-br {
+            content: '';
+            position: absolute;
+            width: 35px;
+            height: 35px;
+            border: 2px solid var(--silver-accent);
+            z-index: 10;
+        }
+        .container::before { top: 8px; left: 8px; border-right: none; border-bottom: none; }
+        .container::after { top: 8px; right: 8px; border-left: none; border-bottom: none; }
+        .corner-bl { bottom: 8px; left: 8px; border-right: none; border-top: none; }
+        .corner-br { bottom: 8px; right: 8px; border-left: none; border-top: none; }
+
+        h1, h2, h3 {
+            font-family: var(--font-title);
+            color: var(--silver-accent);
+            text-align: center;
+            margin-top: 0;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        h1 { font-size: 2.1rem; margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; text-shadow: 0 0 10px rgba(26, 71, 42, 0.5); }
+        h2 { font-size: 1.4rem; color: #2e7d32; margin-bottom: 15px; }
+
+        .screen { display: none; }
+        .screen.active { display: block; }
+
+        p { line-height: 1.75; font-size: 1.05rem; margin-bottom: 15px; }
+
+        .story-box {
+            font-style: italic;
+            background: rgba(26, 71, 42, 0.15);
+            border-left: 4px solid var(--green-glow);
+            padding: 14px 18px;
+            margin: 20px 0;
+            position: relative;
+        }
+
+        .story-box::before {
+            content: "Profesor Soren Snape ostrzega:";
+            display: block;
+            font-family: var(--font-title);
+            font-weight: bold;
+            font-style: normal;
+            color: var(--silver-accent);
+            margin-bottom: 5px;
+        }
+
+        .riddle-box {
+            background-color: rgba(5, 8, 7, 0.6);
+            border: 1px solid var(--border-color);
+            padding: 18px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .input-group { margin-bottom: 15px; }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: var(--text-dark);
+        }
+
+        input[type="text"], select {
+            font-family: var(--font-text);
+            font-size: 1.1rem;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background-color: rgba(13, 20, 18, 0.9);
+            color: #e0e0e0;
+            box-sizing: border-box;
+            width: 100%;
+        }
+
+        button {
+            font-family: var(--font-title);
+            background-color: var(--green-glow);
+            color: #e0e0e0;
+            border: 1px solid var(--silver-accent);
+            padding: 14px 20px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        button:hover {
+            background-color: #2e7d32;
+            box-shadow: 0 0 15px rgba(46, 125, 50, 0.6);
+        }
+
+        .feedback {
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 4px;
+            display: none;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .feedback.error {
+            display: block;
+            background-color: rgba(139, 0, 0, 0.2);
+            color: #ff5555;
+            border: 1px solid var(--blood-red);
+        }
+
+        .feedback.success {
+            display: block;
+            background-color: rgba(46, 125, 50, 0.2);
+            color: #55ff55;
+            border: 1px solid #2e7d32;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 8px;
+            background-color: rgba(0, 0, 0, 0.5);
+            margin-bottom: 25px;
+            border-radius: 4px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+
+        .progress-bar {
+            height: 100%;
+            background-color: var(--silver-accent);
+            width: 0%;
+            transition: width 0.4s ease;
+        }
+
+        .email-box {
+            background-color: #050807;
+            color: var(--text-dark);
+            border: 2px dashed var(--silver-accent);
+            padding: 18px;
+            text-align: center;
+            font-size: 1.3rem;
+            margin: 25px 0;
+            font-family: var(--font-title);
+        }
+        .email-box span { color: var(--silver-accent); font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="corner-bl"></div>
+    <div class="corner-br"></div>
+
+    <div class="progress-bar-container">
+        <div class="progress-bar" id="progress"></div>
+    </div>
+
+    <!-- START -->
+    <div id="screen-start" class="screen active">
+        <h1>Lochy Czarnej Magii</h1>
+        <h2>Escape Room: Sekretne Zaklęcia i Artefakty</h2>
+
+        <p><em>Zeszliście do najgłębszych piwnic. Drzwi do gabinetu zamknęły się ze zgrzytem, a w powietrzu czuć zapach palonego pergaminu i starej magii. Na stole leży zwinięty zwoik ze wskazówkami...</em></p>
+
+        <div class="story-box">
+            "Wkraczacie do strefy poświęconej wyłącznie Mrocznym Sztukom. Żeby stąd wyjść, nie wystarczy siła – potrzebna jest chłodna analiza i znajomość praw rządzących Czarną Magią. Czytajcie moje opisy uważnie, gdyż każdy zawiera klucz do przełamania zaklęć!"
+        </div>
+
+        <p style="text-align: center; font-weight: bold;">Czy podejmiecie wyzwanie i złamiecie mroczne pieczęcie?</p>
+        <button onclick="nextScreen('screen-1', 25)">Rozpocznij Wyzwanie</button>
+    </div>
+
+    <!-- ZAGADKA I: KLĄTWY NIEWYBACZALNE -->
+    <div id="screen-1" class="screen">
+        <h2>Komnata I: Trzy Zakazane Zaklęcia</h2>
+        
+        <div class="story-box">
+            "Prawo Magiczne bezwzględnie zakazuje używania trzech Klątw Niewybaczalnych. Pierwsza z nich pozbawia wolnej woli i daje pełną kontrolę nad ofiarą. Druga służy wyłącznie zadawaniu okrutnego bólu. Trzecia – uśmiercająca – objawia się snopem oślepiającego, zielonego światła."
+        </div>
+
+        <div class="riddle-box">
+            <div class="input-group">
+                <label for="ans-1-1">1. Która klątwa pozwala na przejęcie całkowitej kontroli nad umysłem ofiary?</label>
+                <select id="ans-1-1">
+                    <option value="">-- Wybierz klątwę --</option>
+                    <option value="imperius">Imperius</option>
+                    <option value="cruciatus">Cruciatus</option>
+                    <option value="avada kedavra">Avada Kedavra</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label for="ans-1-2">2. Jak nazywa się klątwa uśmiercająca, znana ze swojego zielonego rozbłysku?</label>
+                <select id="ans-1-2">
+                    <option value="">-- Wybierz klątwę --</option>
+                    <option value="avada kedavra">Avada Kedavra</option>
+                    <option value="sectumsempra">Sectumsempra</option>
+                    <option value="morsmordre">Morsmordre</option>
+                </select>
+            </div>
+        </div>
+
+        <button onclick="checkAnswer1()">Złam I Pieczęć</button>
+        <div id="fb-1" class="feedback"></div>
+    </div>
+
+    <!-- ZAGADKA II: MROCZNE ZAKLĘCIA AUTORSKIE -->
+    <div id="screen-2" class="screen">
+        <h2>Komnata II: Ostrze Księcia Półkrwi</h2>
+
+        <div class="story-box">
+            "Nie wszystkie czarnoksięskie uroki trafiają do podręczników. Zaklęcie stworzone przez Severusa Snape'a, działa jak niewidzialny miecz – rozcina ciało ofiary, powodując głębokie, krwawiące rany. Jedynym zaklęciem odwracającym jego skutki i gojącym te cięcia jest śpiewne _ul_er_ _an_n_u_."
+        </div>
+
+        <div class="riddle-box">
+            <div class="input-group">
+                <label for="ans-2-1">1. Jak nazywa się urok tnący jak niewidzialne ostrze (wymyślony przez Księcia Półkrwi)?</label>
+                <input type="text" id="ans-2-1" placeholder="Wpisz nazwę zaklęcia...">
+            </div>
+
+            <div class="input-group">
+                <label for="ans-2-2">2. Które zaklęcie leczące pozwala zagoić rany zadane przez ten mroczny urok?</label>
+                <select id="ans-2-2">
+                    <option value="">-- Wybierz zaklęcie --</option>
+                    <option value="vulnera sanentur">Vulnera Sanentur</option>
+                    <option value="episkey">Episkey</option>
+                    <option value="aguamenti">Aguamenti</option>
+                </select>
+            </div>
+        </div>
+
+        <button onclick="checkAnswer2()">Złam II Pieczęć</button>
+        <div id="fb-2" class="feedback"></div>
+    </div>
+
+    <!-- ZAGADKA III: CZARNOKSIĘSKIE ARTEFAKTY -->
+    <div id="screen-3" class="screen">
+        <h2>Komnata III: Czarnoksięskie Artefakty</h2>
+
+        <div class="story-box">
+            "Czarna Magia dąży do nieśmiertelności za wszelką cenę. Można stworzyć pewne naczynie, w którym czarnoksiężnik ukrywa cząstkę rozbitej duszy. Aby jednak zniszczyć tak potężny przedmiot, trzeba użyć siły niemal niemożliwej do odczynienia – na przykład żrącego Jadu Bazyliszka albo niszczycielskiego ognia."
+        </div>
+
+        <div class="riddle-box">
+            <div class="input-group">
+                <label for="ans-3-1">1. Jak nazywa się przedmiot, w którym czarnoksiężnik ukrywa fragment własnej duszy?</label>
+                <input type="text" id="ans-3-1" placeholder="Wpisz nazwę artefaktu...">
+            </div>
+
+            <div class="input-group">
+                <label for="ans-3-2">2. Jaki potężny, zaklęty mroczny ogień jest w stanie strawić i zniszczyć Horkruks?</label>
+                <select id="ans-3-2">
+                    <option value="">-- Wybierz żywioł --</option>
+                    <option value="szatańska pożoga">Szatańska pożoga</option>
+                    <option value="incendio">Incendio</option>
+                    <option value="lacarnum inflamarae">Lacarnum Inflamarae</option>
+                </select>
+            </div>
+        </div>
+
+        <button onclick="checkAnswer3()">Złam III Pieczęć</button>
+        <div id="fb-3" class="feedback"></div>
+    </div>
+
+    <!-- ZAGADKA IV: SYMBOLE I ŚLADY -->
+    <div id="screen-4" class="screen">
+        <h2>Komnata IV: Znak Mroku</h2>
+
+        <div class="story-box">
+            "Ostatnia przeszkoda wymaga rozpoznania symboliki Mrocznych Sztuk. Istnieje zaklęcie wystrzeliwujące w powietrze zieloną czaszkę z wyłaniającym się z ust wężem – przerażający Mroczny Znak. Służył on poplecznikom Voldemorta do oznaczania miejsc, w których dokonano czarnoksięskich czynów."
+        </div>
+
+        <div class="riddle-box">
+            <div class="input-group">
+                <label for="ans-4-1">1. Jak nazywa się inkantacja służąca do wyczarowania Mrocznego Znaku na niebie?</label>
+                <select id="ans-4-1">
+                    <option value="">-- Wybierz zaklęcie --</option>
+                    <option value="morsmordre">Morsmordre</option>
+                    <option value="lumos solem">Lumos Solem</option>
+                    <option value="nox">Nox</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label for="ans-4-2">2. Jak nazywali się wierni zwolennicy Lorda Voldemorta noszący ten znak na przedramieniu?</label>
+                <input type="text" id="ans-4-2" placeholder="Wpisz nazwę grupy...">
+            </div>
+        </div>
+
+        <button onclick="checkAnswer4()">Otwórz Wyjście z Lochów!</button>
+        <div id="fb-4" class="feedback"></div>
+    </div>
+
+    <!-- EKRAN KOŃCOWY -->
+    <div id="screen-end" class="screen">
+        <h1 style="color: #55ff55;">🎉 LOCHY POKONANE! 🎉</h1>
+        
+        <div class="story-box">
+            "Doskonale! Rozszyfrowaliście wszystkie mroczne sekrety, neutralizując klątwy i pieczęcie. Udowodniliście, że wiedza teoretyczna o Czarnej Magii to najlepszy pancerz przed jej zagrożeniami."
+        </div>
+
+        <p style="text-align: center; font-size: 1.3rem; font-weight: bold; color: var(--silver-accent);">
+            Ukończyłeś/aś Arcana Czarnej Magii!
+        </p>
+
+        <p style="text-align: center;">Zrób teraz zrzut ekranu (screen) tej strony i wyślij go na poniższy adres e-mail:</p>
+
+        <div class="email-box">
+            ✉️ <span>sorensnape@gmail.com</span>
+        </div>
+
+        <p style="text-align: center; font-size: 0.9rem; color: #8b9d96; font-style: italic;">
+            (Upewnij się, że na zrzucie ekranu wyraźnie widać ten komunikat i adres e-mail).
+        </p>
+    </div>
+</div>
+
+<script>
+    function updateProgress(percent) {
+        document.getElementById('progress').style.width = percent + '%';
+    }
+
+    function nextScreen(screenId, progressVal) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(screenId).classList.add('active');
+        updateProgress(progressVal);
+    }
+
+    // --- ZAGADKA 1 ---
+    function checkAnswer1() {
+        const ans1 = document.getElementById('ans-1-1').value;
+        const ans2 = document.getElementById('ans-1-2').value;
+        const fb = document.getElementById('fb-1');
+
+        if (ans1 === 'imperius' && ans2 === 'avada kedavra') {
+            fb.className = 'feedback success';
+            fb.innerText = 'Znakomicie! Szyfr Klątw Niewybaczalnych pękł!';
+            setTimeout(() => nextScreen('screen-2', 50), 1000);
+        } else {
+            fb.className = 'feedback error';
+            fb.innerText = 'Błąd! Kontrola umysłu to Imperius, a zielony rozbłysk to Avada Kedavra!';
+        }
+    }
+
+    // --- ZAGADKA 2 ---
+    function checkAnswer2() {
+        const ans1 = document.getElementById('ans-2-1').value.trim().toLowerCase();
+        const ans2 = document.getElementById('ans-2-2').value;
+        const fb = document.getElementById('fb-2');
+
+        const isSectum = ans1.includes('sectumsempra') || ans1.includes('sectum sempra');
+
+        if (isSectum && ans2 === 'vulnera sanentur') {
+            fb.className = 'feedback success';
+            fb.innerText = 'Rany zostały zagojone! Druga pieczęć przełamana!';
+            setTimeout(() => nextScreen('screen-3', 75), 1000);
+        } else {
+            fb.className = 'feedback error';
+            fb.innerText = 'Sprawdź pisownię! Tnące zaklęcie to Sectumsempra, a przeciwzaklęcie to Vulnera Sanentur.';
+        }
+    }
+
+    // --- ZAGADKA 3 ---
+    function checkAnswer3() {
+        const ans1 = document.getElementById('ans-3-1').value.trim().toLowerCase();
+        const ans2 = document.getElementById('ans-3-2').value;
+        const fb = document.getElementById('fb-3');
+
+        const isHorkruks = ans1.includes('horkruks') || ans1.includes('horcrux');
+
+        if (isHorkruks && ans2 === 'szatański ogień') {
+            fb.className = 'feedback success';
+            fb.innerText = 'Artefakt został zneutralizowany! Trzecia pieczęć opada!';
+            setTimeout(() => nextScreen('screen-4', 90), 1000);
+        } else {
+            fb.className = 'feedback error';
+            fb.innerText = 'Niewłaściwa odpowiedź. Naczynie na duszę to Horkruks, a niszczycielski żywioł to Szatański Ogień.';
+        }
+    }
+
+    // --- ZAGADKA 4 ---
+    function checkAnswer4() {
+        const ans1 = document.getElementById('ans-4-1').value;
+        const ans2 = document.getElementById('ans-4-2').value.trim().toLowerCase();
+        const fb = document.getElementById('fb-4');
+
+        const isSmierciozerzcy = ans2.includes('śmierciożercy') || ans2.includes('smierciozercy') || ans2.includes('śmierciożerca') || ans2.includes('smierciozerca');
+
+        if (ans1 === 'morsmordre' && isSmierciozerzcy) {
+            fb.className = 'feedback success';
+            fb.innerText = 'Mroczny Znak rozwiany! Wyjście stoi otworem!';
+            setTimeout(() => nextScreen('screen-end', 100), 1000);
+        } else {
+            fb.className = 'feedback error';
+            fb.innerText = 'Uważaj! Inkantacja na Mroczny Znak to Morsmordre, a słudzy to Śmierciożercy.';
+        }
+    }
+</script>
+
+</body>
+</html>
